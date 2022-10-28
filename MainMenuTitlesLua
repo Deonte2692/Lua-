@@ -1,0 +1,16 @@
+print("Made by Deonte")
+
+script.Parent.Text = ""
+game.ReplicatedStorage.OKDONE.OnServerEvent:Connect(function()
+	while true do
+	wait(.5)
+	script.Parent.Text = ""
+	wait(.5)
+	script.Parent.Text = "PRESS ANY BUTTON TO CONTINUE"
+	end
+end)
+
+local pressany = game:GetService("UserInputService")
+pressany.InputBegan:Connect(function()
+	script.Parent:Destroy()
+end)
