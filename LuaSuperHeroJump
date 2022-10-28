@@ -1,0 +1,258 @@
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local character = script.Parent
+local humanoid = character.Humanoid
+local hum = script.Parent.Humanoid
+local rs = game:GetService("RunService")
+JC = Instance.new("Animation")
+DA = Instance.new("Animation")
+SL = Instance.new("Animation")
+JC.AnimationId = "rbxassetid://5822069066"
+SL.AnimationId = "rbxassetid://5850311312"
+DA.AnimationId = "https://www.roblox.com/asset/?id=5854423781"
+local humanoid = script.Parent.Humanoid
+local JumpCharge = humanoid:LoadAnimation(JC)
+local SaitamaLand = humanoid:LoadAnimation(SL)
+local DiveAnimation = humanoid:LoadAnimation(DA)
+local Contrails = false 
+local ContrailBodyPart1 = game.Players.LocalPlayer.Character.LeftHand
+local ContrailBodyPart3 = game.Players.LocalPlayer.Character.LeftFoot
+local ContrailBodyPart4 = game.Players.LocalPlayer.Character.RightFoot
+local ContrailBodyPart2 = game.Players.LocalPlayer.Character:WaitForChild("RightHand")
+local AttachmentPosition1 = Vector3.new(-0.3,0,0)
+local AttachmentPosition2 = Vector3.new(0.3,0,0)
+local ContextActionService = game:GetService("ContextActionService")
+local FREEZE_ACTION = "freezeMovement"
+local wind = Instance.new("ParticleEmitter")
+local colorKeypoints = {
+	ColorSequenceKeypoint.new( 0, Color3.new(1, 1, 1)),  
+	ColorSequenceKeypoint.new(.5, Color3.new(1, 1, 1)), 
+	ColorSequenceKeypoint.new( 1, Color3.new(1, 1, 1))   
+}
+local numberKeypoints2 = {
+	NumberSequenceKeypoint.new(0, 20);  -- At t=0, size of 0
+	NumberSequenceKeypoint.new(1, 20); -- At t=1, size of 10
+}
+wind.Enabled = false
+wind.Texture = "rbxhttp://asset/?id=3916186365" 
+wind.Color = ColorSequence.new(colorKeypoints)
+wind.LightEmission = 0.8
+wind.Size = NumberSequence.new(numberKeypoints2)
+wind.LightInfluence = 1
+wind.Drag = 1
+wind.Rate = 5
+wind.Lifetime = NumberRange.new(2,2)
+wind.Rotation = NumberRange.new(0, 0)
+wind.RotSpeed = NumberRange.new(100)
+wind.Speed = NumberRange.new(10, 10)
+wind.Acceleration = Vector3.new(0, 0, 0)
+wind.LockedToPart = false
+wind.VelocityInheritance = 0
+wind.EmissionDirection = Enum.NormalId.Top
+wind.SpreadAngle = Vector2.new(0,0)
+wind.ZOffset = -1
+wind.Parent = script.Parent.LowerTorso
+
+local jumpKey = Enum.KeyCode.Space
+local jumpPowerMin = script.Parent.Humanoid.JumpPower
+local jumpPowerMax = 350
+
+local jumpChargeMaxSeconds = 5
+
+local function lerp(fraction, rangeStart, rangeEnd)
+	--Linear interpolation
+	--Returns a value that is (fraction) of the way from rangeStart to rangeEnd.
+	--Given a fraction in [0, 1], returns a value in [rangeStart, rangeEnd].
+	return rangeStart + (rangeEnd - rangeStart) * fraction
+end
+
+local function invLerp(value, rangeStart, rangeEnd)
+	--Inverse linear interpolation
+	--Returns the fraction of the way that value is from rangeStart to rangeEnd.
+	--Given a value in [rangeStart, rangeEnd], returns a fraction in [0, 1].
+	return (value - rangeStart)/(rangeEnd - rangeStart)
+end
+
+local function mapRange(value, fromRangeStart, fromRangeEnd, toRangeStart, toRangeEnd)
+	--Returns a value mapped from one number range to another
+	return lerp( 
+		invLerp(value, fromRangeStart, fromRangeEnd), 
+		toRangeStart, 
+		toRangeEnd 
+	)
+end
+
+local CD = false
+
+--Disable normal jumping. State is re-enabled when we want character to jump.
+humanoid:SetStateEnabled("Jumping", false)
+
+
+	UserInputService.InputBegan:Connect(function(startedInput, eventProcessed)
+	if eventProcessed then return end
+	
+	if startedInput.KeyCode == jumpKey and CD == false then
+		--Store the time that we started pressing jump key
+		local jumpChargeStartT = tick()
+		Contrails = true
+		
+		if Contrails == true then 
+
+			local Attachment1A = Instance.new("Attachment",ContrailBodyPart1)
+			Attachment1A.Position = AttachmentPosition1
+			local Attachment2A = Instance.new("Attachment",ContrailBodyPart1)
+			Attachment2A.Position = AttachmentPosition2
+			ContrailsA = Instance.new("Trail",ContrailBodyPart1)
+			ContrailsA.Attachment0 = Attachment1A
+			ContrailsA.Attachment1 = Attachment2A
+			ContrailsA.Texture = "rbxassetid://3517446796"
+			ContrailsA.LightInfluence = 1
+			ContrailsA.TextureLength = 1
+			ContrailsA.FaceCamera = true
+			ContrailsA.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0,1),
+				NumberSequenceKeypoint.new(0.1,0.7),
+				NumberSequenceKeypoint.new(1,1)
+			}
+			local Attachment1B = Instance.new("Attachment",ContrailBodyPart2)
+			Attachment1B.Position = AttachmentPosition1
+			local Attachment2B = Instance.new("Attachment",ContrailBodyPart2)
+			Attachment2B.Position = AttachmentPosition2
+			ContrailsB = Instance.new("Trail",ContrailBodyPart2)
+			ContrailsB.Attachment0 = Attachment1B
+			ContrailsB.Attachment1 = Attachment2B
+			ContrailsB.Texture = "rbxassetid://3517446796"
+			ContrailsB.LightInfluence = 1
+			ContrailsB.TextureLength = 1
+			ContrailsB.FaceCamera = true
+			ContrailsB.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0,1),
+				NumberSequenceKeypoint.new(0.1,0.7),
+				NumberSequenceKeypoint.new(1,1)
+			}
+			local Attachment1C = Instance.new("Attachment",ContrailBodyPart3)
+			Attachment1C.Position = AttachmentPosition1
+			local Attachment2C = Instance.new("Attachment",ContrailBodyPart3)
+			Attachment2C.Position = AttachmentPosition2
+			ContrailsC = Instance.new("Trail",ContrailBodyPart3)
+			ContrailsC.Attachment0 = Attachment1C
+			ContrailsC.Attachment1 = Attachment2C
+			ContrailsC.Texture = "rbxassetid://3517446796"
+			ContrailsC.LightInfluence = 1
+			ContrailsC.TextureLength = 1
+			ContrailsC.FaceCamera = true
+			ContrailsC.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0,1),
+				NumberSequenceKeypoint.new(0.1,0.7),
+				NumberSequenceKeypoint.new(1,1)
+			}
+			local Attachment1D = Instance.new("Attachment",ContrailBodyPart4)
+			Attachment1D.Position = AttachmentPosition1
+			local Attachment2D = Instance.new("Attachment",ContrailBodyPart4)
+			Attachment2D.Position = AttachmentPosition2
+			ContrailsD = Instance.new("Trail",ContrailBodyPart4)
+			ContrailsD.Attachment0 = Attachment1D
+			ContrailsD.Attachment1 = Attachment2D
+			ContrailsD.Texture = "rbxassetid://3517446796"
+			ContrailsD.LightInfluence = 1
+			ContrailsD.TextureLength = 1
+			ContrailsD.FaceCamera = true
+			ContrailsD.Transparency = NumberSequence.new{
+				NumberSequenceKeypoint.new(0,1),
+				NumberSequenceKeypoint.new(0.1,0.7),
+				NumberSequenceKeypoint.new(1,1)
+			}
+		end
+		
+		JumpCharge:Play()
+		script.Parent.Humanoid.WalkSpeed = 0
+		
+			local inputEndedC
+		    inputEndedC = UserInputService.InputEnded:Connect(function(endedInput, eventProcessed)
+				if eventProcessed then return end
+					
+      			if endedInput.KeyCode == jumpKey then
+				--Cleanup InputEnded connection
+				inputEndedC:Disconnect()
+				JumpCharge:Stop()
+				script.Parent.Humanoid.WalkSpeed = 20
+				
+	
+				wind.Enabled = true
+				
+				
+				
+				--Calculate time since we started pressing jump key
+				local jumpChargeSeconds = tick() - jumpChargeStartT
+				
+				--Limit the jump power
+				jumpChargeSeconds = math.min(jumpChargeSeconds, jumpChargeMaxSeconds)
+
+				--Calculate the jump power
+				local jumpPower = mapRange(
+					jumpChargeSeconds, --value
+					0, jumpChargeMaxSeconds, --from range
+					jumpPowerMin, jumpPowerMax --to range
+				)
+
+				print(string.format("%3.2f s => %3.2f JP", jumpChargeSeconds, jumpPower))
+				
+				local explosion = Instance.new("Explosion")
+				explosion.BlastRadius = jumpPower/20
+				explosion.ExplosionType = Enum.ExplosionType.Craters -- damages terrain
+				explosion.DestroyJointRadiusPercent = 0
+				explosion.BlastPressure = jumpPower*5
+				explosion.Position = script.Parent.LowerTorso.Position
+				explosion.Visible = false
+				explosion.Parent = game.Workspace
+
+				humanoid:SetStateEnabled("Jumping", true)
+				humanoid.JumpPower = jumpPower        
+
+				--Wait a frame before jumping, because apparently SetStateEnabled doesn't take effect until then
+				RunService.RenderStepped:Wait()
+				humanoid.Jump = true
+				wait(1)
+				wind.Enabled = false
+				Contrails = false
+				ContrailsA.Enabled = false
+				ContrailsB.Enabled = false
+				ContrailsC.Enabled = false
+				ContrailsD.Enabled = false
+
+				--Wait a frame before disabling jumpng, because apparently SetStateEnabled DOES stop the jump before it can happen
+				--  if we don't.
+				
+						RunService.Stepped:Wait()
+				humanoid:SetStateEnabled("Jumping", false)				
+					
+				end
+				
+   end	
+		)
+		end
+	end)
+
+
+local hum = script.Parent.Humanoid
+local rs = game:GetService("RunService")
+
+
+
+	
+
+local cooldown = 2
+local Event = game:GetService("ReplicatedStorage").JumpEvent
+
+local player = game:GetService("Players").LocalPlayer
+
+script.Parent:WaitForChild("Humanoid").FreeFalling:Connect(function() --- get function that fires during freefalling
+	if script.Parent.Humanoid:GetState() == Enum.HumanoidStateType.Landed then 
+		if tick() - player.Cooldown.Value > cooldown then
+			CD = true
+			wait(cooldown)
+			CD = false
+		end
+		end
+end)
