@@ -1,0 +1,35 @@
+local cam = workspace.CurrentCamera
+local c = workspace.Cams
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local uis = game:GetService("UserInputService")
+
+
+repeat wait()
+	cam.CameraType = Enum.CameraType.Scriptable
+until cam.CameraType == Enum.CameraType.Scriptable
+
+repeat wait() until character
+
+game.ReplicatedStorage.One:FireServer()
+cam.CFrame = c.Cam1.CFrame
+cam.FieldOfView = 70
+for i = 0, 1, 0.01 do
+	cam.CFrame = cam.CFrame:Lerp(c.Cam2.CFrame, 0.02)
+	wait(0.01)
+end
+cam.FieldOfView = 40
+for i = 0, 1, 0.01 do
+	cam.CFrame = cam.CFrame:Lerp(c.Cam3.CFrame, i)
+	wait(0.01)
+end
+game.ReplicatedStorage.OKDONE:FireServer()
+wait(2)
+uis.InputBegan:Connect(function()
+	game.ReplicatedStorage.Two:FireServer()
+	wait(2)
+	game.ReplicatedStorage.Three:FireServer()
+	wait(2)
+	game.ReplicatedStorage.isummon:FireServer()
+	script:Destroy()
+end)
